@@ -41,4 +41,4 @@ else:
         except Exception as e:
             st.error(f"Error técnico: {e}")
 
-    # Aquí puedes luego pegar tus cuentos del Cóndor y el Zorro
+    # Aquí puedes luego pegar tus cuentos del Cóndor y el Zorro 
