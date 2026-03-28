@@ -1,33 +1,42 @@
 import streamlit as st
+from st_gsheets_connection import GSheetsConnection
+import pandas as pd
 
-# 1. CONFIGURACIÓN BÁSICA
+# 1. Configuración
 st.set_page_config(page_title="Kuyay Cuentos", page_icon="🌟")
 
-# 2. TÍTULO PRINCIPAL
-st.title("🌟 BIENVENIDO A KUYAY")
-st.subheader("Cuentos Mágicos del Perú")
+# 2. El "Enchufe" al Excel (Aquí es donde fallaba)
+try:
+    conn = st.connection("gsheets", type=GSheetsConnection)
+    st.sidebar.success("✅ Conexión al Excel lista")
+except Exception as e:
+    st.sidebar.error("❌ Falta configurar la llave (Secrets)")
 
-# 3. SISTEMA DE BIENVENIDA (ESTADO DE SESIÓN)
+st.title("🌟 BIENVENIDO A KUYAY")
+
 if 'usuario' not in st.session_state:
-    # Pantalla de inicio para pedir el nombre
-    st.write("### ¡Hola! Para empezar, dinos quién eres.")
-    nombre = st.text_input("Escribe tu nombre aquí amiguito:")
-    
-    if st.button("¡EMPEZAR AVENTURA!"):
+    nombre = st.text_input("¿Cómo te llamas, amiguito?")
+    if st.button("INGRESAR"):
         if nombre:
             st.session_state.usuario = nombre
-            st.rerun() # Esto recarga la página con el nombre guardado
-        else:
-            st.warning("Por favor, escribe un nombre para continuar.")
+            st.rerun()
 else:
-    # Pantalla cuando ya puso su nombre
-    st.write(f"## ¡Qué alegría verte, {st.session_state.usuario}! 👋")
-    st.write("---")
-    st.success("¡La aplicación está funcionando correctamente!")
+    st.write(f"### ¡Hola {st.session_state.usuario}!")
     
-    st.info("Pronto aquí verás los cuentos del Cóndor y el Zorro.")
-    
-    # Botón por si quiere entrar con otro nombre
-    if st.button("Cambiar de nombre"):
-        del st.session_state.usuario
-        st.rerun()
+    # BOTÓN PARA GUARDAR EN EXCEL
+    if st.button("GUARDAR MI NOMBRE EN EL EXCEL"):
+        try:
+            # 1. Leer lo que ya hay en la Hoja 1
+            df_viejo = conn.read(worksheet="Hoja 1")
+            
+            # 2. Crear la nueva fila
+            nueva_data = pd.DataFrame([{"Alumno": st.session_state.usuario, "Puntaje": "Conectado"}])
+            
+            # 3. Juntarlos y subir
+            df_final = pd.concat([df_viejo, nueva_data], ignore_index=True)
+            conn.update(worksheet="Hoja 1", data=df_final)
+            
+            st.success("¡Logrado! Tu nombre ya está en el Excel de la Profe.")
+            st.balloons()
+        except Exception as e:
+            st.error(f"Error al guardar: {e}")
