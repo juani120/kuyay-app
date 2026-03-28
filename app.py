@@ -1,8 +1,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-from shubham.google_sheets import GSheetsConnection # Usaremos una conexión más robusta
-
+from st_gsheets_connection import GSheetsConnection
 # 1. CONFIGURACIÓN
 st.set_page_config(page_title="Kuyay Cuentos", layout="centered")
 
